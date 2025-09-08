@@ -1,0 +1,258 @@
+[
+  {
+    "rank": 0,
+    "action": "FORWARD",
+    "stage_idx": 0,
+    "mb_idx": 0,
+    "start_ns": 1752546178081906397,
+    "end_ns": 1752546178872101244
+  },
+  {
+    "rank": 0,
+    "action": "SEND_F",
+    "stage_idx": 0,
+    "mb_idx": 0,
+    "start_ns": 1752546178872179403,
+    "end_ns": 1752546178872584496
+  },
+  {
+    "rank": 0,
+    "action": "FORWARD",
+    "stage_idx": 0,
+    "mb_idx": 1,
+    "start_ns": 1752546178872630595,
+    "end_ns": 1752546179692837084
+  },
+  {
+    "rank": 0,
+    "action": "SEND_F",
+    "stage_idx": 0,
+    "mb_idx": 1,
+    "start_ns": 1752546179692901423,
+    "end_ns": 1752546179693376935
+  },
+  {
+    "rank": 0,
+    "action": "FORWARD",
+    "stage_idx": 0,
+    "mb_idx": 2,
+    "start_ns": 1752546179693445593,
+    "end_ns": 1752546180545772308
+  },
+  {
+    "rank": 0,
+    "action": "SEND_F",
+    "stage_idx": 0,
+    "mb_idx": 2,
+    "start_ns": 1752546180545920245,
+    "end_ns": 1752546180546141421
+  },
+  {
+    "rank": 0,
+    "action": "RECV_B",
+    "stage_idx": 0,
+    "mb_idx": 0,
+    "start_ns": 1752546180546278458,
+    "end_ns": 1752546180546393076
+  },
+  {
+    "rank": 0,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 0,
+    "mb_idx": 0,
+    "start_ns": 1752546183074299520,
+    "end_ns": 1752546184730523476
+  },
+  {
+    "rank": 0,
+    "action": "FORWARD",
+    "stage_idx": 0,
+    "mb_idx": 3,
+    "start_ns": 1752546184730623194,
+    "end_ns": 1752546185556037090
+  },
+  {
+    "rank": 0,
+    "action": "SEND_F",
+    "stage_idx": 0,
+    "mb_idx": 3,
+    "start_ns": 1752546185556102769,
+    "end_ns": 1752546185556507642
+  },
+  {
+    "rank": 0,
+    "action": "RECV_B",
+    "stage_idx": 0,
+    "mb_idx": 1,
+    "start_ns": 1752546185556549901,
+    "end_ns": 1752546185556622780
+  },
+  {
+    "rank": 0,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 0,
+    "mb_idx": 1,
+    "start_ns": 1752546185557271828,
+    "end_ns": 1752546187232771699
+  },
+  {
+    "rank": 0,
+    "action": "RECV_B",
+    "stage_idx": 0,
+    "mb_idx": 2,
+    "start_ns": 1752546187232870297,
+    "end_ns": 1752546187233053834
+  },
+  {
+    "rank": 0,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 0,
+    "mb_idx": 2,
+    "start_ns": 1752546187410696692,
+    "end_ns": 1752546189099610242
+  },
+  {
+    "rank": 0,
+    "action": "RECV_B",
+    "stage_idx": 0,
+    "mb_idx": 3,
+    "start_ns": 1752546189099733200,
+    "end_ns": 1752546189099912077
+  },
+  {
+    "rank": 0,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 0,
+    "mb_idx": 3,
+    "start_ns": 1752546189807611262,
+    "end_ns": 1752546191460456938
+  },
+  {
+    "rank": 1,
+    "action": "RECV_F",
+    "stage_idx": 1,
+    "mb_idx": 0,
+    "start_ns": 1752546178098784388,
+    "end_ns": 1752546178098989564
+  },
+  {
+    "rank": 1,
+    "action": "FORWARD",
+    "stage_idx": 1,
+    "mb_idx": 0,
+    "start_ns": 1752546178872663914,
+    "end_ns": 1752546180251586788
+  },
+  {
+    "rank": 1,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 1,
+    "mb_idx": 0,
+    "start_ns": 1752546180324323628,
+    "end_ns": 1752546183073254704
+  },
+  {
+    "rank": 1,
+    "action": "SEND_B",
+    "stage_idx": 1,
+    "mb_idx": 0,
+    "start_ns": 1752546183073345083,
+    "end_ns": 1752546183073787454
+  },
+  {
+    "rank": 1,
+    "action": "RECV_F",
+    "stage_idx": 1,
+    "mb_idx": 2,
+    "start_ns": 1752546183073839673,
+    "end_ns": 1752546183074078309
+  },
+  {
+    "rank": 1,
+    "action": "FORWARD",
+    "stage_idx": 1,
+    "mb_idx": 2,
+    "start_ns": 1752546183074605579,
+    "end_ns": 1752546184519385143
+  },
+  {
+    "rank": 1,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 1,
+    "mb_idx": 2,
+    "start_ns": 1752546184607464553,
+    "end_ns": 1752546187409683799
+  },
+  {
+    "rank": 1,
+    "action": "SEND_B",
+    "stage_idx": 1,
+    "mb_idx": 2,
+    "start_ns": 1752546187409776937,
+    "end_ns": 1752546187410314307
+  },
+  {
+    "rank": 2,
+    "action": "RECV_F",
+    "stage_idx": 1,
+    "mb_idx": 1,
+    "start_ns": 1752546178097886938,
+    "end_ns": 1752546178098063474
+  },
+  {
+    "rank": 2,
+    "action": "FORWARD",
+    "stage_idx": 1,
+    "mb_idx": 1,
+    "start_ns": 1752546179694235824,
+    "end_ns": 1752546181081771701
+  },
+  {
+    "rank": 2,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 1,
+    "mb_idx": 1,
+    "start_ns": 1752546181147240703,
+    "end_ns": 1752546183855340089
+  },
+  {
+    "rank": 2,
+    "action": "SEND_B",
+    "stage_idx": 1,
+    "mb_idx": 1,
+    "start_ns": 1752546183855465586,
+    "end_ns": 1752546183855663862
+  },
+  {
+    "rank": 2,
+    "action": "RECV_F",
+    "stage_idx": 1,
+    "mb_idx": 3,
+    "start_ns": 1752546183855696401,
+    "end_ns": 1752546183855925656
+  },
+  {
+    "rank": 2,
+    "action": "FORWARD",
+    "stage_idx": 1,
+    "mb_idx": 3,
+    "start_ns": 1752546185557454780,
+    "end_ns": 1752546186976228601
+  },
+  {
+    "rank": 2,
+    "action": "FULL_BACKWARD",
+    "stage_idx": 1,
+    "mb_idx": 3,
+    "start_ns": 1752546187063825971,
+    "end_ns": 1752546189807448525
+  },
+  {
+    "rank": 2,
+    "action": "SEND_B",
+    "stage_idx": 1,
+    "mb_idx": 3,
+    "start_ns": 1752546189807542223,
+    "end_ns": 1752546189807972494
+  }
+]
