@@ -62,7 +62,7 @@ def create_pipeline_actions():
         _Action(1, 1, 4, _ComputationType.SEND_B, (0,), 0, 100, None),
         _Action(1, 1, 5, _ComputationType.SEND_B, (2,), 0, 100, None),
          
-        _Action(1, 1, 6, _ComputationType.ALL_REDUCE, None, 100, None, None),
+        _Action(1, 1, 6, _ComputationType.ALL_REDUCE, None, None, 100, None),
     ]
     
     # Rank 2 (Stage 1)
@@ -74,7 +74,7 @@ def create_pipeline_actions():
         _Action(1, 2, 4, _ComputationType.SEND_B, (1,), 0, 100, None),
         _Action(1, 2, 5, _ComputationType.SEND_B, (3,), 0, 100, None),
 
-        _Action(1, 2, 6, _ComputationType.ALL_REDUCE, None, 100, None, None),
+        _Action(1, 2, 6, _ComputationType.ALL_REDUCE, None, None, 100, None),
     ]
     
     return {0: rank0_actions, 1: rank1_actions, 2: rank2_actions}
