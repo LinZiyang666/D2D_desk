@@ -40,22 +40,26 @@ class PartStart(nn.Module):                          # rank 0
     def forward(self, input_ids):
         bsz, seqlen = input_ids.shape
         device = input_ids.device
-        position_ids = torch.arange(seqlen, device=device).unsqueeze(0).expand(bsz, -1)
+        position_ids = torch.arange(seqlen, device=device).unsqueeze(0).expand(bsz, -1).contiguous()
         hidden = self.embed_tokens(input_ids)
-        pos_emb = self.rotary_emb(hidden, position_ids)
-
-        attn_mask = torch.triu(torch.full((seqlen, seqlen), float('-inf'), device=device), 1)
-        attn_mask = attn_mask.unsqueeze(0).unsqueeze(0).expand(bsz, 1, -1, -1).contiguous()
+        position_embeddings = self.rotary_emb(hidden, position_ids)
+        attention_mask = torch.triu(
+            torch.full((seqlen, seqlen), float('-inf'), device=device),
+            diagonal=1
+        ).unsqueeze(0).unsqueeze(0).expand(bsz, 1, -1, -1).contiguous()
 
         for layer in self.layers:
-            hidden = layer(hidden_states=hidden,
-                           attention_mask=attn_mask,
-                           position_ids=position_ids,
-                           position_embeddings=pos_emb,
-                           output_attentions=False,
-                           use_cache=False)[0]
+            layer_outputs = layer(
+                hidden_states=hidden,
+                attention_mask=attention_mask,
+                position_ids=position_ids,
+                position_embeddings=position_embeddings,
+                output_attentions=False,
+                use_cache=False,
+            )
+            hidden = layer_outputs[0]
 
-        return hidden.contiguous(), attn_mask.contiguous()
+        return hidden.contiguous(), attention_mask.contiguous()
 
 
 class PartMiddle(nn.Module):
