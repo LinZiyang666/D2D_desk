@@ -304,7 +304,6 @@ def main():
     sched = PipelineScheduleRuntimeWithDirection([stage], n_microbatches=args.batch_size, loss_fn=loss_fn, root_pass=args.sudo_pass)
 
     # === Memory monitor: start & register containers (CPU/Gloo safe) ===
-    import os
 
     rank_env = int(os.environ.get("RANK", str(rank)))  # 若已定义 rank 变量，可直接用
     monitor = MemoryMonitor(
