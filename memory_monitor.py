@@ -1,18 +1,3 @@
-
-"""
-memory_monitor.py
-
-A lightweight, rank-friendly memory watcher for PyTorch training/inference.
-It can:
-  - Poll CUDA memory (allocated/reserved/max) and Python RSS.
-  - List the top-N live CUDA tensors by size.
-  - Track dict-like containers (e.g., fwd_cache) and report per-key tensor memory.
-  - Provide a context manager/decorator to annotate code regions and measure memory deltas.
-
-Works even if torch is not available (then only Python RSS is reported).
-Safe to import in any process. Designed for multi-rank (DDP / pipeline) usage.
-"""
-
 import os
 import gc
 import io
@@ -266,6 +251,7 @@ class MemoryMonitor:
         top_tensors: int = 20,
         cuda_only_tensors: bool = True,
         print_stdout: bool = True,
+        stdout_pad_lines: int = 1,   # NEW: extra blank lines after each stdout line
     ) -> None:
         self.log_path = log_path
         self.interval_s = max(0.05, float(interval_s))
@@ -273,6 +259,7 @@ class MemoryMonitor:
         self.top_tensors = int(top_tensors)
         self.cuda_only_tensors = bool(cuda_only_tensors)
         self.print_stdout = bool(print_stdout)
+        self.stdout_pad_lines = max(0, int(stdout_pad_lines))
 
         self.rank = _get_rank()
         self.local_rank = _get_local_rank()
@@ -382,11 +369,20 @@ class MemoryMonitor:
         line = json.dumps(payload, ensure_ascii=False)
         if self._fh is not None:
             try:
+                # Keep JSONL strict in the log file (one record per line)
                 self._fh.write(line + "\n")
             except Exception:
                 pass
         if self.print_stdout:
-            print(line, flush=True)
+            # Add extra blank lines on stdout for readability
+            try:
+                sys.stdout.write(line + "\n")
+                if self.stdout_pad_lines > 0:
+                    sys.stdout.write("\n" * self.stdout_pad_lines)
+                sys.stdout.flush()
+            except Exception:
+                # Fallback to print if direct write fails
+                print(line + ("\n" * self.stdout_pad_lines), flush=True)
 
     def _run(self) -> None:
         # Background polling loop
@@ -426,6 +422,7 @@ def _parse_argv(argv: List[str]) -> Dict[str, Any]:
     p.add_argument("--top", type=int, default=20, help="Number of top tensors to list")
     p.add_argument("--no-tensors", action="store_true", help="Do not list individual tensors")
     p.add_argument("--include-cpu-tensors", action="store_true", help="Include CPU tensors in top list")
+    p.add_argument("--pad-lines", type=int, default=1, help="Extra blank lines after each stdout line")
     p.add_argument("--duration", type=float, default=0.0, help="If >0, run for N seconds then exit")
     args = p.parse_args(argv)
     return {
@@ -434,6 +431,7 @@ def _parse_argv(argv: List[str]) -> Dict[str, Any]:
         "top": args.top,
         "include_tensors": (not args.no_tensors),
         "cuda_only": (not args.include_cpu_tensors),
+        "pad_lines": max(0, args.pad_lines),
         "duration": args.duration,
     }
 
@@ -448,6 +446,7 @@ def main_cli(argv: Optional[List[str]] = None) -> None:
         top_tensors=cfg["top"],
         cuda_only_tensors=cfg["cuda_only"],
         print_stdout=True,
+        stdout_pad_lines=cfg["pad_lines"],
     )
     mon.start()
     t0 = _now_s()

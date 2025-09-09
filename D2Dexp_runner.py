@@ -324,8 +324,7 @@ def main():
 
     # sched 内部“打包后的前向缓存”（如果存在就监控）
     try:
-        if hasattr(sched, "_big_fwd_cache"):
-            monitor.register_container("big_fwd_cache", getattr(sched, "_big_fwd_cache"))
+        monitor.register_container("big_fwd_cache", getattr(sched, "_big_fwd_cache"))
     except Exception as e:
         print(f"[rank {rank_env}] register sched big cache failed: {e}")
 
