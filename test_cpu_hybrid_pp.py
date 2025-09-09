@@ -38,10 +38,10 @@ def create_pipeline_actions():
     rank0_actions = [
         _Action(0, 0, 0, _ComputationType.FORWARD, (0,1,2,3), None, None, None),
 
-        _Action(0, 0, 1, _ComputationType.SEND_F, (0,), 1, 10000, None),
-        _Action(0, 0, 2, _ComputationType.SEND_F, (2,), 1, 10000, None),
-        _Action(0, 0, 3, _ComputationType.SEND_F, (1,), 2, 10000, None),
-        _Action(0, 0, 4, _ComputationType.SEND_F, (3,), 2, 10000, None),
+        _Action(0, 0, 1, _ComputationType.SEND_F, (0,), 1, 100, None),
+        _Action(0, 0, 2, _ComputationType.SEND_F, (2,), 1, 100, None),
+        _Action(0, 0, 3, _ComputationType.SEND_F, (1,), 2, 100, None),
+        _Action(0, 0, 4, _ComputationType.SEND_F, (3,), 2, 100, None),
         
         
         
@@ -59,10 +59,10 @@ def create_pipeline_actions():
         _Action(1, 1, 1, _ComputationType.RECV_F, (2,), 0, None, None),
         _Action(1, 1, 2, _ComputationType.FORWARD, (0,2), None, None, None),
         _Action(1, 1, 3, _ComputationType.FULL_BACKWARD, (0,2), None, None, None),
-        _Action(1, 1, 4, _ComputationType.SEND_B, (0,), 0, 10000, None),
-        _Action(1, 1, 5, _ComputationType.SEND_B, (2,), 0, 10000, None),
+        _Action(1, 1, 4, _ComputationType.SEND_B, (0,), 0, 100, None),
+        _Action(1, 1, 5, _ComputationType.SEND_B, (2,), 0, 100, None),
          
-        _Action(1, 1, 6, _ComputationType.ALL_REDUCE, None, None, None, None),
+        _Action(1, 1, 6, _ComputationType.ALL_REDUCE, None, 100, None, None),
     ]
     
     # Rank 2 (Stage 1)
@@ -71,10 +71,10 @@ def create_pipeline_actions():
         _Action(1, 2, 1, _ComputationType.RECV_F, (3,), 0, None, None),
         _Action(1, 2, 2, _ComputationType.FORWARD, (1,3), None, None, None),
         _Action(1, 2, 3, _ComputationType.FULL_BACKWARD, (1,3), None, None, None),
-        _Action(1, 2, 4, _ComputationType.SEND_B, (1,), 0, 10000, None),
-        _Action(1, 2, 5, _ComputationType.SEND_B, (3,), 0, 10000, None),
+        _Action(1, 2, 4, _ComputationType.SEND_B, (1,), 0, 100, None),
+        _Action(1, 2, 5, _ComputationType.SEND_B, (3,), 0, 100, None),
 
-        _Action(1, 2, 6, _ComputationType.ALL_REDUCE, None, None, None, None),
+        _Action(1, 2, 6, _ComputationType.ALL_REDUCE, None, 100, None, None),
     ]
     
     return {0: rank0_actions, 1: rank1_actions, 2: rank2_actions}
