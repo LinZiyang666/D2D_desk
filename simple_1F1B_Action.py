@@ -88,7 +88,7 @@ def generate_1f1b_pipeline_actions_pro(num_stages: int,total_samples: int, num_m
                 local_id += 1
                 return a
             next_group_info = batch_info[stage_idx+1] if stage_idx+1<num_stages else None
-            prev_group_info = batch_info[stage_idx-1] if stage_idx-1>0 else None
+            prev_group_info = batch_info[stage_idx-1] if stage_idx-1>=0 else None
 
             def make_comm_action(mb_index, type_, group_info):
                 nonlocal sample_chunk, stage_idx, per_mbatch_size

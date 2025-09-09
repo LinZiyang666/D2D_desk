@@ -635,6 +635,7 @@ class PipelineScheduleRuntimeWithDirection(schedule.PipelineScheduleMulti):
                     else:
                         if not is_prev_stage_on_this_rank:
                             for mid in mb_ids:
+                                #Jin: as currently we use asyn sending&receiving...
                                 assert (
                                     stage_idx,
                                     mid,

@@ -11,6 +11,7 @@ Key Features:
 - Manual microbatch scheduling via custom action list
 - Used for testing correctness and loss behavior of the hybrid PP runtime
 """
+from memory_monitor import MemoryMonitor
 import json
 from typing import Any, Dict, List, Union
 import argparse, os, torch, torch.nn as nn, torch.nn.functional as F, torch.optim as optim
@@ -302,11 +303,42 @@ def main():
     
     sched = PipelineScheduleRuntimeWithDirection([stage], n_microbatches=args.batch_size, loss_fn=loss_fn, root_pass=args.sudo_pass)
 
+    # === Memory monitor: start & register containers (CPU/Gloo safe) ===
+    import os
+
+    rank_env = int(os.environ.get("RANK", str(rank)))  # 若已定义 rank 变量，可直接用
+    monitor = MemoryMonitor(
+        log_path=f"/tmp/mem_rank{rank_env}.jsonl",
+        interval_s=0.5,
+        include_tensors=True,      # 若性能有感知，可改为 False
+        top_tensors=50,            # 多列一些大对象
+        cuda_only_tensors=False,   # 关键：CPU-only 必须 False
+    )
+    # 逐容器统计（尽量多挂一些你关心的 dict）
+    try:
+        if hasattr(stage, "fwd_cache"):
+            monitor.register_container("fwd_cache", stage.fwd_cache)
+        if hasattr(stage, "bwd_cache"):
+            monitor.register_container("bwd_cache", stage.bwd_cache)
+    except Exception as e:
+        print(f"[rank {rank_env}] register stage caches failed: {e}")
+
+    # sched 内部“打包后的前向缓存”（如果存在就监控）
+    try:
+        if hasattr(sched, "_big_fwd_cache"):
+            monitor.register_container("big_fwd_cache", getattr(sched, "_big_fwd_cache"))
+    except Exception as e:
+        print(f"[rank {rank_env}] register sched big cache failed: {e}")
+
+    monitor.start()
+    # === end ===
+
+    
+    
     batch_info,group_info = plan_batch_parser(args.plan_loc)
     actions = generate_1f1b_pipeline_actions_pro(num_stages= total_stages, total_samples = args.batch_size, num_microbatches= args.microbatch_num,
                                                  group_info=group_info, batch_info=batch_info,
                                                   upstream = args.upstream)
-
     sched._load_actions(actions, format="compute_comms")
     
     opt = optim.Adam(stage_mod.parameters(), lr=1e-4)            
@@ -335,56 +367,69 @@ def main():
                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]')
             start_time = time.time()
         
-        for step in range(total_steps):
-            step_start_time = time.time()
-            opt.zero_grad(set_to_none=True)
-            
-            if rank == 0:
-                batch = next(data_iter)
-                inp = batch["input_ids"].to(device)
-                tgt = batch["labels"].to(device)
-                dist.broadcast(tgt, src=0)
-                sched.step(inp, target=tgt)
-            else:
-               
-                tgt = torch.empty(batch_size, block, dtype=torch.long, device=device)
-                dist.broadcast(tgt, src=0)
-                sched.step(target=tgt)
-            
-            if (step + 1) % 50 == 0:
-                sched.timeline_rec.events.clear()
-            opt.step()
-            
-            if rank == 0:
-                step_time = time.time() - step_start_time
-                tokens_processed = batch_size * block
-                tokens_per_second = tokens_processed / step_time
-                
-                pbar.set_postfix({
-                    'tokens/s': f'{tokens_per_second:.0f}',
-                    'step_time': f'{step_time:.2f}s',
-                    'lr': f'{opt.param_groups[0]["lr"]:.2e}'
-                })
-                pbar.update(1)
-                
-            cur_loss = getattr(sched, "last_step_loss", None)
-            
-            if cur_loss is not None:
-                delta = (cur_loss - prev_loss) if prev_loss is not None else None
+        try:
+            for step in range(total_steps):
+                step_start_time = time.time()
+                opt.zero_grad(set_to_none=True)
 
-                print(f"[rank0] step {step+1} loss {cur_loss:.4f}"
-                        + ("" if prev_loss is None else (" down" if cur_loss < prev_loss else " up" if cur_loss > prev_loss else " flat")))
-                prev_loss = cur_loss
+                with monitor.section("sched.step"):
+                    if rank == 0:
+                        batch = next(data_iter)
+                        inp = batch["input_ids"].to(device)
+                        tgt = batch["labels"].to(device)
+                        dist.broadcast(tgt, src=0)
+                        sched.step(inp, target=tgt)
+                    else:
+                        tgt = torch.empty(batch_size, block, dtype=torch.long, device=device)
+                        dist.broadcast(tgt, src=0)
+                        sched.step(None, target=tgt)
+
+                with monitor.section("opt.step"):
+                    opt.step()
+
+                
+                if rank == 0:
+                    step_time = time.time() - step_start_time
+                    tokens_processed = batch_size * block
+                    tokens_per_second = tokens_processed / step_time
+                    
+                    pbar.set_postfix({
+                        'tokens/s': f'{tokens_per_second:.0f}',
+                        'step_time': f'{step_time:.2f}s',
+                        'lr': f'{opt.param_groups[0]["lr"]:.2e}'
+                    })
+                    pbar.update(1)
+                    
+                cur_loss = getattr(sched, "last_step_loss", None)
+                
+                if cur_loss is not None:
+                    delta = (cur_loss - prev_loss) if prev_loss is not None else None
+
+                    print(f"[rank0] step {step+1} loss {cur_loss:.4f}"
+                            + ("" if prev_loss is None else (" down" if cur_loss < prev_loss else " up" if cur_loss > prev_loss else " flat")))
+                    prev_loss = cur_loss
+                
+                
+                
+                dist.barrier()
+            try:
+                monitor.stop()
+            except Exception:
+                pass    
             
-            
-            
-            dist.barrier()
+        except Exception as e:
+            # 出错时抓一份即时快照到 stdout / log
+            snap = monitor.snapshot()
+            print("[MEM-SNAPSHOT-ON-ERROR]", snap)
+            raise
         
         if rank == 0:
             pbar.close()
             total_time = time.time() - start_time
             print(f"\nEpoch {epoch+1} completed in {total_time:.2f}s")
             print(f"Average speed: {total_steps / total_time:.2f} steps/s")
+            
+    
 
     if rank == 0:
         print("\nMerging and saving model...")
