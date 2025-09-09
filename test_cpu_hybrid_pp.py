@@ -36,6 +36,36 @@ def create_pipeline_actions():
     # [stage],[rank],[id],[action type],[microbatch],[dest_rank],[upstream],[dependency]
     # Rank 0 (Stage 0)
     rank0_actions = [
+        _Action(0, 0, 10, _ComputationType.RECV_B, (0,), 1, None, None),
+        _Action(0, 0, 11, _ComputationType.RECV_B, (1,), 1, None, None),
+        _Action(0, 0, 12, _ComputationType.RECV_B, (2,), 1, None, None),
+        _Action(0, 0, 13, _ComputationType.RECV_B, (3,), 1, None, None),
+        _Action(0, 0, 14, _ComputationType.RECV_B, (4,), 1, None, None),
+        
+        _Action(0, 0, 10, _ComputationType.RECV_B, (5,), 2, None, None),
+        _Action(0, 0, 11, _ComputationType.RECV_B, (6,), 2, None, None),
+        _Action(0, 0, 12, _ComputationType.RECV_B, (7,), 2, None, None),
+        _Action(0, 0, 13, _ComputationType.RECV_B, (8,), 2, None, None),
+        _Action(0, 0, 14, _ComputationType.RECV_B, (9,), 2, None, None),
+        
+        _Action(0, 0, 10, _ComputationType.RECV_B, (10,), 1, None, None),
+        _Action(0, 0, 11, _ComputationType.RECV_B, (11,), 1, None, None),
+        _Action(0, 0, 12, _ComputationType.RECV_B, (12,), 1, None, None),
+        _Action(0, 0, 13, _ComputationType.RECV_B, (13,), 1, None, None),
+        _Action(0, 0, 14, _ComputationType.RECV_B, (14,), 1, None, None),
+        
+        _Action(0, 0, 10, _ComputationType.RECV_B, (15,), 2, None, None),
+        _Action(0, 0, 11, _ComputationType.RECV_B, (16,), 2, None, None),
+        _Action(0, 0, 12, _ComputationType.RECV_B, (17,), 2, None, None),
+        _Action(0, 0, 13, _ComputationType.RECV_B, (18,), 2, None, None),
+        _Action(0, 0, 14, _ComputationType.RECV_B, (19,), 2, None, None),
+        
+        _Action(0, 0, 10, _ComputationType.RECV_B, (20,), 1, None, None),
+        _Action(0, 0, 11, _ComputationType.RECV_B, (21,), 1, None, None),
+        _Action(0, 0, 12, _ComputationType.RECV_B, (22,), 1, None, None),
+        _Action(0, 0, 13, _ComputationType.RECV_B, (23,), 1, None, None),
+        _Action(0, 0, 14, _ComputationType.RECV_B, (24,), 1, None, None),
+        
         _Action(0, 0, 0, _ComputationType.FORWARD, (0,1,2,3,4), None, None, None),
         _Action(0, 0, 1, _ComputationType.SEND_F, (0,), 1, 10000, None),
         _Action(0, 0, 1, _ComputationType.SEND_F, (1,), 1, 10000, None),
@@ -71,39 +101,19 @@ def create_pipeline_actions():
         _Action(0, 0, 1, _ComputationType.SEND_F, (23,), 1, 10000, None),
         _Action(0, 0, 1, _ComputationType.SEND_F, (24,), 1, 10000, None),
         
-        _Action(0, 0, 10, _ComputationType.RECV_B, (0,), 1, None, None),
-        _Action(0, 0, 11, _ComputationType.RECV_B, (1,), 1, None, None),
-        _Action(0, 0, 12, _ComputationType.RECV_B, (2,), 1, None, None),
-        _Action(0, 0, 13, _ComputationType.RECV_B, (3,), 1, None, None),
-        _Action(0, 0, 14, _ComputationType.RECV_B, (4,), 1, None, None),
+        
         _Action(0, 0, 15, _ComputationType.FULL_BACKWARD, (0,1,2,3,4), None, None, None),    
         
-        _Action(0, 0, 10, _ComputationType.RECV_B, (5,), 2, None, None),
-        _Action(0, 0, 11, _ComputationType.RECV_B, (6,), 2, None, None),
-        _Action(0, 0, 12, _ComputationType.RECV_B, (7,), 2, None, None),
-        _Action(0, 0, 13, _ComputationType.RECV_B, (8,), 2, None, None),
-        _Action(0, 0, 14, _ComputationType.RECV_B, (9,), 2, None, None),
+        
         _Action(0, 0, 15, _ComputationType.FULL_BACKWARD, (5,6,7,8,9), None, None, None),
         
-        _Action(0, 0, 10, _ComputationType.RECV_B, (10,), 1, None, None),
-        _Action(0, 0, 11, _ComputationType.RECV_B, (11,), 1, None, None),
-        _Action(0, 0, 12, _ComputationType.RECV_B, (12,), 1, None, None),
-        _Action(0, 0, 13, _ComputationType.RECV_B, (13,), 1, None, None),
-        _Action(0, 0, 14, _ComputationType.RECV_B, (14,), 1, None, None),
+
         _Action(0, 0, 15, _ComputationType.FULL_BACKWARD, (10,11,12,13,14), None, None, None),
         
-        _Action(0, 0, 10, _ComputationType.RECV_B, (15,), 2, None, None),
-        _Action(0, 0, 11, _ComputationType.RECV_B, (16,), 2, None, None),
-        _Action(0, 0, 12, _ComputationType.RECV_B, (17,), 2, None, None),
-        _Action(0, 0, 13, _ComputationType.RECV_B, (18,), 2, None, None),
-        _Action(0, 0, 14, _ComputationType.RECV_B, (19,), 2, None, None),
+
         _Action(0, 0, 15, _ComputationType.FULL_BACKWARD, (15,16,17,18,19), None, None, None),
         
-        _Action(0, 0, 10, _ComputationType.RECV_B, (20,), 1, None, None),
-        _Action(0, 0, 11, _ComputationType.RECV_B, (21,), 1, None, None),
-        _Action(0, 0, 12, _ComputationType.RECV_B, (22,), 1, None, None),
-        _Action(0, 0, 13, _ComputationType.RECV_B, (23,), 1, None, None),
-        _Action(0, 0, 14, _ComputationType.RECV_B, (24,), 1, None, None),
+
         _Action(0, 0, 15, _ComputationType.FULL_BACKWARD, (20,21,22,23,24), None, None, None), 
     ]
     
