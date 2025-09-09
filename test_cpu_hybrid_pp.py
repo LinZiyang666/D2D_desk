@@ -168,16 +168,20 @@ class Part2(nn.Module):  # rank 1
         return self.lm_head(hidden)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--train_steps", type=int, default=None,
+parser.add_argument("--train_steps", type=int, default=1,
                     help="The total number of steps for training. If omitted, run the entire DataLoader.")
 parser.add_argument("--batch_size", type=int,
-                    default=int(os.getenv("BATCH_SIZE", 16)),
+                    default=int(os.getenv("BATCH_SIZE", 20)),
                     help="The batch size of each rank (the environment variable BATCH_SIZE can be overridden)")
 parser.add_argument("--microbatch_num", type=int,
-                    default=int(os.getenv("MICROBATCH_NUM", 4)),
+                    default=int(os.getenv("MICROBATCH_NUM", 5)),
                     help="Micro-batch number (the environment variable MICROBATCH_NUM can be overridden)")
 parser.add_argument("--sudo_pass", default=os.getenv("SUDO_PASS"),
                     help='Write the password of root')
+parser.add_argument("--upstream", default=os.getenv("upstream"),
+                    help='Write the upstream in mbps')
+parser.add_argument("--plan_loc", type=str, required=True,
+                    help='the json file that stores the sharding plans...')
 args = parser.parse_args()
 def main():
 
