@@ -234,10 +234,14 @@ def main():
     is_group,is_final_stage, shard_stage, shard_from, shard_to, prev_g, this_g, next_g, total_stages, total_batchs = plan_parser(rank, world, args.plan_loc)
 
     if shard_stage == 0:
+        print(f"shard_to {shard_to}")
         stage_mod = PartStart(full,shard_to)
     elif is_final_stage == 1:
+        print(f"shard_from {shard_from}")
         stage_mod = PartEnd(full,shard_from)
     else:
+        print(f"shard_from {shard_from}")
+        print(f"shard_to {shard_to}")
         stage_mod = PartMiddle(full, shard_from, shard_to)
 
 
@@ -301,34 +305,35 @@ def main():
     if total_batchs!= int(args.batch_size/args.microbatch_num):
         raise ValueError(f"Mbatch misbatch plan's assumption")
     
+    print(f"n_microbatches {args.batch_size}")
     sched = PipelineScheduleRuntimeWithDirection([stage], n_microbatches=args.batch_size, loss_fn=loss_fn, root_pass=args.sudo_pass)
 
     # === Memory monitor: start & register containers (CPU/Gloo safe) ===
 
     rank_env = int(os.environ.get("RANK", str(rank)))  # 若已定义 rank 变量，可直接用
-    monitor = MemoryMonitor(
-        log_path=f"/tmp/mem_rank{rank_env}.jsonl",
-        interval_s=0.5,
-        include_tensors=True,      # 若性能有感知，可改为 False
-        top_tensors=50,            # 多列一些大对象
-        cuda_only_tensors=False,   # 关键：CPU-only 必须 False
-    )
+    # monitor = MemoryMonitor(
+    #     log_path=f"/tmp/mem_rank{rank_env}.jsonl",
+    #     interval_s=0.5,
+    #     include_tensors=True,      # 若性能有感知，可改为 False
+    #     top_tensors=50,            # 多列一些大对象
+    #     cuda_only_tensors=False,   # 关键：CPU-only 必须 False
+    # )
     # 逐容器统计（尽量多挂一些你关心的 dict）
-    try:
-        if hasattr(stage, "fwd_cache"):
-            monitor.register_container("fwd_cache", stage.fwd_cache)
-        if hasattr(stage, "bwd_cache"):
-            monitor.register_container("bwd_cache", stage.bwd_cache)
-    except Exception as e:
-        print(f"[rank {rank_env}] register stage caches failed: {e}")
+    # try:
+    #     if hasattr(stage, "fwd_cache"):
+    #        # monitor.register_container("fwd_cache", stage.fwd_cache)
+    #     if hasattr(stage, "bwd_cache"):
+    #        # monitor.register_container("bwd_cache", stage.bwd_cache)
+    # except Exception as e:
+    #     print(f"[rank {rank_env}] register stage caches failed: {e}")
 
     # sched 内部“打包后的前向缓存”（如果存在就监控）
-    try:
-        monitor.register_container("big_fwd_cache", getattr(sched, "_big_fwd_cache"))
-    except Exception as e:
-        print(f"[rank {rank_env}] register sched big cache failed: {e}")
+    # try:
+    #    # monitor.register_container("big_fwd_cache", getattr(sched, "_big_fwd_cache"))
+    # except Exception as e:
+    #     print(f"[rank {rank_env}] register sched big cache failed: {e}")
 
-    monitor.start()
+   # monitor.start()
     # === end ===
 
     
@@ -370,19 +375,19 @@ def main():
                 step_start_time = time.time()
                 opt.zero_grad(set_to_none=True)
 
-                with monitor.section("sched.step"):
-                    if rank == 0:
-                        batch = next(data_iter)
-                        inp = batch["input_ids"].to(device)
-                        tgt = batch["labels"].to(device)
-                        dist.broadcast(tgt, src=0)
-                        sched.step(inp, target=tgt)
-                    else:
-                        tgt = torch.empty(batch_size, block, dtype=torch.long, device=device)
-                        dist.broadcast(tgt, src=0)
-                        sched.step(None, target=tgt)
+               # with monitor.section("sched.step"):
+                if rank == 0:
+                    batch = next(data_iter)
+                    inp = batch["input_ids"].to(device)
+                    tgt = batch["labels"].to(device)
+                    dist.broadcast(tgt, src=0)
+                    sched.step(inp, target=tgt)
+                else:
+                    tgt = torch.empty(batch_size, block, dtype=torch.long, device=device)
+                    dist.broadcast(tgt, src=0)
+                    sched.step(None, target=tgt)
 
-                with monitor.section("opt.step"):
+              #  with monitor.section("opt.step"):
                     opt.step()
 
                 
@@ -410,15 +415,15 @@ def main():
                 
                 
                 dist.barrier()
-            try:
-                monitor.stop()
-            except Exception:
-                pass    
+            # try:
+            #    # monitor.stop()
+            # except Exception:
+            #     pass    
             
         except Exception as e:
             # 出错时抓一份即时快照到 stdout / log
-            snap = monitor.snapshot()
-            print("[MEM-SNAPSHOT-ON-ERROR]", snap)
+          #  snap = monitor.snapshot()
+          #  print("[MEM-SNAPSHOT-ON-ERROR]", snap)
             raise
         
         if rank == 0:
