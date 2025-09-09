@@ -16,6 +16,8 @@ import os, socket, subprocess, functools, fcntl, tempfile
 ROOT_PASS = None              
 _last_rate = None
 
+
+from saved_tensor_watch import SavedTensorWatch
 import torch
 import torch.distributed as dist
 import pipelining_source_code.schedules as schedule
@@ -670,8 +672,42 @@ class PipelineScheduleRuntimeWithDirection(schedule.PipelineScheduleMulti):
                             self._mb_to_group[(stage_idx, mid)] = g_id
                             
                     
-                    with self._rec.record(current_batch+1,action_id,"FORWARD", stage_idx, mb_ids):
-                        output = stage.forward_one_chunk(rep_id, cat_args, cat_kwargs, len(mb_ids))
+                    with self._rec.record(current_batch+1, action_id, "FORWARD", stage_idx, mb_ids):
+                        # ===== SavedTensorWatch 开始：给“这一次前向”打一个 section 标签 =====
+                        watch = None
+                        if SavedTensorWatch is not None:
+                            # 每个 stage 初始化一次 watcher（优先用 stage.submod 作为模型主体）
+                            if not hasattr(self, "_saved_watchers"):
+                                self._saved_watchers = {}
+
+                            watch = self._saved_watchers.get(stage_idx)
+                            if watch is None:
+                                try:
+                                    # 模型对象：优先 submod（你的 PipelineStage_with_mutiple_ranks 里用它来前向）
+                                    model_obj = getattr(stage, "submod", None) or getattr(stage, "module", None) or stage
+                                    # 每个 rank/每个 stage 各自一份 JSONL
+                                    log_path = f"/tmp/saved_tensors_rank{dist.get_rank()}_s{stage_idx}.jsonl"
+                                    watch = SavedTensorWatch(
+                                        model=model_obj,
+                                        log_path=log_path,            # 若不想落盘可改成 None
+                                        min_bytes=64 * 1024 * 1024,   # 只记录 >=64MiB 的保存张量，先抓“大头”
+                                        stack_limit=10,                # 调用栈最多保留 10 帧（过滤了 site-packages）
+                                    )
+                                    self._saved_watchers[stage_idx] = watch
+                                except Exception:
+                                    watch = None
+
+                        section_name = f"FWD_s{stage_idx}_rep{rep_id}"
+
+                        if watch is not None:
+                            # 这个 with 期间，Autograd 任何“被保存的中间张量”都会被统计并归因到该 section 与模块路径
+                            with watch.activate(section=section_name):
+                                output = stage.forward_one_chunk(rep_id, cat_args, cat_kwargs, len(mb_ids))
+                        else:
+                            # 兜底：即使导入失败也照常跑
+                            output = stage.forward_one_chunk(rep_id, cat_args, cat_kwargs, len(mb_ids))
+                        # ===== SavedTensorWatch 结束 =====
+
                     
                     big_key = (stage_idx, rep_id)
                     big_entry = stage.fwd_cache.get(rep_id)
